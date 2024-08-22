@@ -21,7 +21,7 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/sistema', require('./routes/sistemas'));
+app.use('/api/sistemas', require('./routes/sistemas'));
 app.use('/api/events', require('./routes/events'));
 
 //Este caso es apra cuando ponemos el frontend en la carpeta public del backend y queremos acceder a alguna ruta de manera directa, como cuando teniamos el frontend separado, por ejmplo "host/auth/login" y dicha ruta va a ser interceptada por el express y no la tiene definida, por tal motivo la va a atrapar este nueva linea y le da curso correcto.

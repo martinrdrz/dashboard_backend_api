@@ -1,11 +1,9 @@
 const ok = (mensaje) => ({
-    ok: true,
     ...mensaje,
 });
 
 const error = (mensaje) => ({
-    ok: false,
-    ...mensaje,
+    mensaje,
 });
 
 module.exports = {

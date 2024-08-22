@@ -1,24 +1,23 @@
 const { response } = require('express');
-const serviceSistema = require('../services/sistema');
+const serviceSistema = require('../services/sistemas');
 const dto = require('../dto/dto');
 
 const getSistemas = async (req, res = response) => {
     try {
-        console.log('Dentro del controlador');
         const result = await serviceSistema.getSistemas();
-        return res.status(200).json(dto.ok(result));
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(400).json(dto.error({ message: error.message }));
+        return res.status(400).json(dto.error(error.message));
     }
 };
 
 const getSistema = async (req, res = response) => {
-    const { email } = req.body;
+    const email = req.params.email;
     try {
         const result = await serviceSistema.getSistema(email);
-        return res.status(200).json(dto.ok(result));
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(400).json(dto.error({ message: error.message }));
+        return res.status(400).json(dto.error(error.message));
     }
 };
 

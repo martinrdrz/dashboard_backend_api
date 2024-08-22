@@ -6,9 +6,9 @@ const crearUsuario = async (req, res = response) => {
     const { email, name, password } = req.body;
     try {
         const result = await serviceAuth.crearUsuario(email, name, password);
-        return res.status(200).json(dto.ok(result));
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(400).json(dto.error({ message: error.message }));
+        return res.status(400).json(dto.error(error.message));
     }
 };
 
@@ -16,9 +16,9 @@ const loginUsuario = async (req, res = response) => {
     const { email, password } = req.body;
     try {
         const result = await serviceAuth.loginUsuario(email, password);
-        return res.status(200).json(dto.ok(result));
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(400).json(dto.error({ message: error.message }));
+        return res.status(400).json(dto.error(error.message));
     }
 };
 

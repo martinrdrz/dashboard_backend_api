@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { validarCampos } = require('../middlewares/validar-campos');
-const { getSistemas, getSistema } = require('../controllers/sistema');
+const { getSistemas, getSistema } = require('../controllers/sistemas');
 
 const router = Router();
 
