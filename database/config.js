@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const dbConnection = async () => {
     try {
         await mongoose.connect(process.env.DB_CNN);
-        //El siguiente objeto es el segndo parametro del metodo connect anterior, pero en las versiones nuevas da error, por eso se eliminó
+        //El siguiente objeto es el segundo parametro del metodo connect anterior, pero en las versiones nuevas da error, por eso se eliminó
         // {
         //     useNewUrlParser: true,
         //     useUnifiedTopology: true,
