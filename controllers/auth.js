@@ -5,7 +5,7 @@ const dto = require('../dto/dto');
 const crearUsuario = async (req, res = response) => {
     const { email, name, password } = req.body;
     try {
-        const resutl = await serviceAuth.crearUsuario(email, name, password);
+        const result = await serviceAuth.crearUsuario(email, name, password);
         return res.status(200).json(dto.ok(result));
     } catch (error) {
         return res.status(400).json(dto.error({ message: error.message }));

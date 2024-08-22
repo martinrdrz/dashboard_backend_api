@@ -1,37 +1,32 @@
 const { Schema, model } = require('mongoose');
 
-const EventoSchema = Schema({
-
+const EventoSchema = new Schema({
     title: {
         type: String,
-        required: true
+        required: true,
     },
     notes: {
-        type: String,        
+        type: String,
     },
     start: {
         type: Date,
-        required: true
+        required: true,
     },
     end: {
         type: Date,
-        required: true
+        required: true,
     },
     user: {
         type: Schema.Types.ObjectId,
         ref: 'Usuario',
-        required: true
-    }
-
+        required: true,
+    },
 });
 
-EventoSchema.method('toJSON', function() {
+EventoSchema.method('toJSON', function () {
     const { __v, _id, ...object } = this.toObject();
     object.id = _id;
     return object;
 });
 
-
-
-module.exports = model('Evento', EventoSchema );
-
+module.exports = model('Evento', EventoSchema);
