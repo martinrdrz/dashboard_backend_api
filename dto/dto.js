@@ -3,7 +3,7 @@ const ok = (mensaje) => ({
 });
 
 const error = (mensaje) => ({
-    mensaje,
+    msg: mensaje,
 });
 
 module.exports = {

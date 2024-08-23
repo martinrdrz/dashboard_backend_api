@@ -27,7 +27,7 @@ const revalidarToken = async (req, res = response) => {
 
     // Generar JWT
     const result = await serviceAuth.revalidarToken(uid, name, email);
-    return res.status(200).json(dto.error(result));
+    return res.status(200).json(result);
 };
 
 module.exports = {

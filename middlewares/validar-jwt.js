@@ -7,10 +7,7 @@ const validarJWT = (req, res = response, next) => {
     const token = req.header('x-token');
 
     if (!token) {
-        return res.status(401).json({
-            ok: false,
-            msg: 'No hay token en la petición',
-        });
+        return res.status(401).json(dto.error('No hay token en la petición'));
     }
 
     try {
@@ -22,7 +19,6 @@ const validarJWT = (req, res = response, next) => {
     } catch (error) {
         return res.status(401).json(dto.error('Token no válido'));
     }
-
     next();
 };
 
