@@ -1,5 +1,6 @@
 const { response } = require('express');
 const jwt = require('jsonwebtoken');
+const dto = require('../dto/dto');
 
 const validarJWT = (req, res = response, next) => {
     // x-token headers
@@ -19,10 +20,7 @@ const validarJWT = (req, res = response, next) => {
         req.name = name;
         req.email = email;
     } catch (error) {
-        return res.status(401).json({
-            ok: false,
-            msg: 'Token no válido',
-        });
+        return res.status(401).json(dto.error('Token no válido'));
     }
 
     next();
