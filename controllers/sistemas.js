@@ -21,7 +21,18 @@ const getSistema = async (req, res = response) => {
     }
 };
 
+const getData = async (req, res = response) => {
+    const email = req.params.email;
+    try {
+        const result = await serviceSistema.getData(email);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(400).json(dto.error(error.message));
+    }
+};
+
 module.exports = {
     getSistemas,
     getSistema,
+    getData,
 };

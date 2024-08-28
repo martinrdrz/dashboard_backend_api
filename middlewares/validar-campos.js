@@ -1,14 +1,12 @@
 const { response } = require('express');
 const { validationResult } = require('express-validator');
+constdto = require('../dto/dto');
 
 const validarCampos = (req, res = response, next) => {
     // manejo de errores
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
-            ok: false,
-            errors: errors.mapped(),
-        });
+        return res.status(400).json(dto.error(errors.mapped()));
     }
     next();
 };
