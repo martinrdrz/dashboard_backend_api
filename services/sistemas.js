@@ -25,7 +25,7 @@ const getSistema = async (email = null) => {
     }
 };
 
-const getData = async (email) => {
+const getData = async (email, resultCount) => {
     try {
         const userSystemsData = await Sistema.findOne({ email });
         if (!userSystemsData) {
@@ -33,45 +33,27 @@ const getData = async (email) => {
         }
 
         //devuelve un array con cada una de las url para pedir los datos a thingspeak
-        const arrayUrlQueries = getUrlQueries(userSystemsData);
+        const arrayUrlQueries = getUrlQueries(userSystemsData, resultCount);
         console.log(arrayUrlQueries);
 
-        //Realiza una llamada en paralelo a todas las url para traer los datos de todos los canales desde thingspeak.
-        //Devuelve una lista, donde cada componente es una lista que tiene cada uno de los datos del canal en cuestion, es decir, cada componente de esta ultima lista es un objeto con todos los campos y valores para el canal en cuestion. y la ultima es una lista porque tiene todos los valores historicos almacenados para ese canal, el ultimo valor de la lista es el valor mas reciente.
-        const arrayDataFromThingspeak = await getDataFromThingspeak(arrayUrlQueries);
-        console.log(arrayDataFromThingspeak);
+        // Realiza una llamada en paralelo a todas las url para traer los datos de todos los canales desde thingspeak.
+        // Devuelve una lista, donde cada componente es una lista que tiene cada uno de los datos del canal en cuestion, es decir, cada componente de esta ultima lista es un objeto con todos los campos y valores para el canal en cuestion. y la ultima es una lista porque tiene todos los valores historicos almacenados para ese canal, el ultimo valor de la lista es el valor mas reciente.
+        const arrayValuesFromThingspeak = await getDataFromThingspeak(arrayUrlQueries);
+        //console.log(arrayValuesFromThingspeak);
 
-        const arraySortedData = getDataFromQuery(arrayDataFromThingspeak);
+        const arraySortedValues = getDataSortedFromThingspeakData(arrayValuesFromThingspeak);
 
-        const userSystemDataWithValue = getUserSystemsWithValues(userSystemsData, arraySortedData);
-        return userSystemDataWithValue;
+        const userSystemDataWithValues = getUserSystemsWithValues(userSystemsData, arraySortedValues);
+        return userSystemDataWithValues;
     } catch (error) {
         console.log('Error');
         throw error;
     }
 };
 
-const apiCall = async (arrayUrlQueries) => {
-    const apiCalls = arrayUrlQueries.map((url) => thingspeakApi.get(url));
-    try {
-        const results = await Promise.all(apiCalls);
-        results.forEach((result) => {
-            if (!result.data) {
-                throw new Error('No existen datos en Thingspeak para alguna de las consultas.');
-            }
-        });
-        return results.map((result) => result.data);
-    } catch (error) {
-        throw error;
-    }
-};
-
 //Arma una lista (array) con los string de las consultas a Thingspeak para obtener los datos. Cada consulta trae los datos de un canal entrero, el mismo puede estar completo o parcialmente completo.
-const getUrlQueries = (userSystemsData) => {
+const getUrlQueries = (userSystemsData, resultCount) => {
     const arrayUrlQueries = [];
-    const thingspeakAmountResults = process.env.THINGSPEAK_RESULTS;
-
-    console.log(`---------------${thingspeakAmountResults}`);
 
     for (let i = 1; i <= userSystemsData.cant_sistemas; i++) {
         const systemKey = `sistema_${i}`;
@@ -91,7 +73,7 @@ const getUrlQueries = (userSystemsData) => {
             if (!apiKeyValue) {
                 throw new Error('No existe el apiKey readAPIkey_${j} del sistema sistema_${i}.');
             }
-            const queryUrl = `/channels/${channelValue}/feeds.json?api_key=${apiKeyValue}&results=${thingspeakAmountResults}`;
+            const queryUrl = `/channels/${channelValue}/feeds.json?api_key=${apiKeyValue}&results=${resultCount}`;
             arrayUrlQueries.push(queryUrl);
         }
     }
@@ -113,12 +95,71 @@ const getDataFromThingspeak = async (arrayUrlQueries) => {
     }
 };
 
-const getDataFromQuery = (arrayUrlQueries) => {
+// [
+//     [
+//         {
+//             created_at: '2024-08-26T13:08:44Z',
+//             entry_id: 644,
+//             field1: '26',
+//             field2: '-15',
+//             field3: '-56',
+//             field4: '-4',
+//         },
+//         {
+//             created_at: '2024-08-29T16:05:09Z',
+//             entry_id: 645,
+//             field1: '50',
+//             field2: '60',
+//             field3: '70',
+//             field4: '80',
+//         },
+//     ],
+//     [
+//         {
+//             created_at: '2024-05-20T20:31:27Z',
+//             entry_id: 637,
+//             field1: '-11',
+//             field2: '0',
+//         },
+//         {
+//             created_at: '2024-08-26T13:08:44Z',
+//             entry_id: 638,
+//             field1: '-22',
+//             field2: '4',
+//         },
+//     ],
+// ];
+
+const getFieldsCount = (channelData) => {
+    if (!channelData) {
+        throw new Error('Canal de Thingspeak sin campos.');
+    }
+    const fieldCount = Object.keys(channelData).filter((key) => key.includes('field')).length;
+    return fieldCount;
+};
+
+const getFieldHistoricalValues = (element, field) => {
     //todo
+};
+
+const getDataSortedFromThingspeakData = (arrayValuesFromThingspeak) => {
+    //todo
+    arrayValuesFromThingspeak.forEach((element) => {
+        if (!element) {
+            throw new Error('Canal de Thingspeak sin campos.');
+        }
+        //obtengo la cantidad de campos "fields" de cada elemento, en realidad solo basta con una de las compoenentes del elemento ya que todasson iguales en longitud
+        const fieldsCount = getFieldsCount(element[0]);
+        for (let field = 1; field <= fieldsCount; field++) {
+            //todo
+            const fieldHistoricalValues = getFieldHistoricalValues(element, field);
+        }
+    });
+
     return true;
 };
 
-const getUserSystemsWithValues = (arrayUrlQueries, arrayData) => {
+const getUserSystemsWithValues = (userSystemsData, arraySortedValues) => {
     //todo
     return true;
 };

@@ -23,8 +23,10 @@ const getSistema = async (req, res = response) => {
 
 const getData = async (req, res = response) => {
     const email = req.params.email;
+    const resultsCount = req.query.resultsCount;
+    const count = parseInt(resultsCount, 10);
     try {
-        const result = await serviceSistema.getData(email);
+        const result = await serviceSistema.getData(email, count);
         return res.status(200).json(result);
     } catch (error) {
         return res.status(400).json(dto.error(error.message));
