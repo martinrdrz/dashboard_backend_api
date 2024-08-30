@@ -33,17 +33,23 @@ const getData = async (email, resultCount) => {
         }
 
         //devuelve un array con cada una de las url para pedir los datos a thingspeak
-        const arrayUrlQueries = getUrlQueries(userSystemsData, resultCount);
-        console.log(arrayUrlQueries);
+        const urlQueryList = getUrlQueries(userSystemsData, resultCount);
+        console.log(urlQueryList);
 
         // Realiza una llamada en paralelo a todas las url para traer los datos de todos los canales desde thingspeak.
         // Devuelve una lista, donde cada componente es una lista que tiene cada uno de los datos del canal en cuestion, es decir, cada componente de esta ultima lista es un objeto con todos los campos y valores para el canal en cuestion. y la ultima es una lista porque tiene todos los valores historicos almacenados para ese canal, el ultimo valor de la lista es el valor mas reciente.
-        const arrayValuesFromThingspeak = await getDataFromThingspeak(arrayUrlQueries);
-        //console.log(arrayValuesFromThingspeak);
+        const valuesListFromThingspeak = await getDataFromThingspeak(urlQueryList);
 
-        const arraySortedValues = getDataSortedFromThingspeakData(arrayValuesFromThingspeak);
-
-        const userSystemDataWithValues = getUserSystemsWithValues(userSystemsData, arraySortedValues);
+        //Devuelve un objeto con propiedades del tipo mencionado abajo que copntiene los valores para todos los datos almacenados para el usuario en particular. Los datos son nombrados de manera creciente del 1 hasta terminar con todos los datos de todos los canales de todos los sistemas que hayan sido asignados a ese usuario enparticular.
+        //  { data_1: [ '21', '26', '50' ],
+        //   data_2: [ '-16', '-15', '60' ],
+        //   data_3: [ '-30', '-56', '70' ],
+        //   data_4: [ '6', '-4', '80' ],
+        //   data_5: [ '-11', '-11', '-22' ],
+        //   data_6: [ '0', '0', '4' ] }
+        const allFieldsSortedValues = getDataSortedFromThingspeakData(valuesListFromThingspeak);
+        console.log(allFieldsSortedValues);
+        const userSystemDataWithValues = getUserSystemsWithValues(userSystemsData, allFieldsSortedValues);
         return userSystemDataWithValues;
     } catch (error) {
         console.log('Error');
@@ -80,8 +86,8 @@ const getUrlQueries = (userSystemsData, resultCount) => {
     return arrayUrlQueries;
 };
 
-const getDataFromThingspeak = async (arrayUrlQueries) => {
-    const apiCalls = arrayUrlQueries.map((url) => thingspeakApi.get(url));
+const getDataFromThingspeak = async (urlQueryList) => {
+    const apiCalls = urlQueryList.map((url) => thingspeakApi.get(url));
     try {
         const results = await Promise.all(apiCalls);
         results.forEach((result) => {
@@ -95,41 +101,17 @@ const getDataFromThingspeak = async (arrayUrlQueries) => {
     }
 };
 
+//Formato: arrayValuesFromThingspeak
 // [
 //     [
-//         {
-//             created_at: '2024-08-26T13:08:44Z',
-//             entry_id: 644,
-//             field1: '26',
-//             field2: '-15',
-//             field3: '-56',
-//             field4: '-4',
-//         },
-//         {
-//             created_at: '2024-08-29T16:05:09Z',
-//             entry_id: 645,
-//             field1: '50',
-//             field2: '60',
-//             field3: '70',
-//             field4: '80',
-//         },
+//        {created_at: '2024-08-26T13:08:44Z', entry_id: 644, field1: '26', field2: '-15', field3: '-56', field4: '-4'},
+//        {created_at: '2024-08-29T16:05:09Z', entry_id: 645, field1: '50', field2: '60', field3: '70', field4: '80'},
 //     ],
 //     [
-//         {
-//             created_at: '2024-05-20T20:31:27Z',
-//             entry_id: 637,
-//             field1: '-11',
-//             field2: '0',
-//         },
-//         {
-//             created_at: '2024-08-26T13:08:44Z',
-//             entry_id: 638,
-//             field1: '-22',
-//             field2: '4',
-//         },
+//        {created_at: '2024-05-20T20:31:27Z', entry_id: 637, field1: '-11', field2: '0'},
+//        {created_at: '2024-08-26T13:08:44Z', entry_id: 638, field1: '-22', field2: '4'},
 //     ],
 // ];
-
 const getFieldsCount = (channelData) => {
     if (!channelData) {
         throw new Error('Canal de Thingspeak sin campos.');
@@ -138,64 +120,49 @@ const getFieldsCount = (channelData) => {
     return fieldCount;
 };
 
-const getFieldHistoricalValues = (element, field) => {
+const getFieldHistoricalValues = (channelHistoricalValuesList, fieldIndex) => {
     //todo
+    if (!channelHistoricalValuesList) {
+        throw new Error('No existe lista de valores de Thingspeak ');
+    }
+    const fieldValuesList = channelHistoricalValuesList.map((element) => {
+        return element[`field${fieldIndex}`];
+    });
+    return fieldValuesList;
 };
 
-const getDataSortedFromThingspeakData = (arrayValuesFromThingspeak) => {
+const getDataSortedFromThingspeakData = (valuesListFromThingspeak) => {
     //todo
-    arrayValuesFromThingspeak.forEach((element) => {
-        if (!element) {
+    const allFieldsSortedValues = {};
+    var gralIndex = 0;
+    valuesListFromThingspeak.forEach((channelHistoricalValuesList) => {
+        if (!channelHistoricalValuesList) {
             throw new Error('Canal de Thingspeak sin campos.');
         }
-        //obtengo la cantidad de campos "fields" de cada elemento, en realidad solo basta con una de las compoenentes del elemento ya que todasson iguales en longitud
-        const fieldsCount = getFieldsCount(element[0]);
-        for (let field = 1; field <= fieldsCount; field++) {
+        //obtengo la cantidad de propiedades "fields" de cada elemento, en realidad, para hacer eso, solo basta ver cuantas propiedadeds "field" existen en solo una de las componentes del elemento ya que todas son iguales en cantidad de propiedades "field".
+        const fieldsCount = getFieldsCount(channelHistoricalValuesList[0]);
+        for (let fieldIndex = 1; fieldIndex <= fieldsCount; fieldIndex++) {
             //todo
-            const fieldHistoricalValues = getFieldHistoricalValues(element, field);
+            const fieldHistoricalValues = getFieldHistoricalValues(channelHistoricalValuesList, fieldIndex);
+            //console.log(fieldHistoricalValues);
+            gralIndex += 1;
+            allFieldsSortedValues[`data_${gralIndex}`] = fieldHistoricalValues;
+        }
+    });
+    return allFieldsSortedValues;
+};
+
+const getUserSystemsWithValues = (userSystemsData, allFieldsSortedValues) => {
+    var systemsFiledsValues = {};
+    userSystemsData.forEach((system) => {
+        //todo
+        system.cant_datos;
+        for (let dataInSystemIndex = 1; dataInSystemIndex <= system.cant_datos; dataInSystemIndex++) {
+            //todo
         }
     });
 
     return true;
-};
-
-const getUserSystemsWithValues = (userSystemsData, arraySortedValues) => {
-    //todo
-    return true;
-};
-
-const getData_OK = async (email) => {
-    try {
-        const userSystemsData = await Sistema.findOne({ email });
-        if (!userSystemsData) {
-            throw new Error('No existe un sistema para ese email');
-        }
-        //todo
-        let systemsData = {};
-
-        //En systemsData se almacena en formato json cada uno de los valores de los datos de cada sistema para el usuario dado
-        for (let i = 1; i <= userSystemsData.cant_sistemas; i++) {
-            const systemKey = `sistema_${i}`;
-            const system = userSystemsData[systemKey];
-            if (!system) {
-                throw new Error('Uno de los sistemas no posee datos para leer.');
-            }
-            systemsData[systemKey] = {};
-
-            for (let j = 1; j <= userSystemsData[systemKey].cant_datos; j++) {
-                const dataKey = `dato_${j}`;
-                const dataValue = userSystemsData[systemKey][dataKey];
-                if (!dataValue) {
-                    throw new Error('No existe el dato data_${j} del sistema sistema_${i}.');
-                }
-                systemsData[systemKey][dataKey] = dataValue;
-            }
-        }
-        console.log(systemsData);
-        return systemsData;
-    } catch (error) {
-        throw error;
-    }
 };
 
 module.exports = {
