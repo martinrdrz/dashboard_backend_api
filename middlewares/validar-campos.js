@@ -1,6 +1,6 @@
 const { response } = require('express');
 const { validationResult } = require('express-validator');
-constdto = require('../dto/dto');
+const dto = require('../dto/dto');
 
 const validarCampos = (req, res = response, next) => {
     // manejo de errores

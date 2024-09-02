@@ -19,6 +19,7 @@ const getSistema = async (email = null) => {
         if (!userSystemsData) {
             throw new Error('No existe un sistema para ese email');
         }
+        //await new Promise((resolve) => setTimeout(resolve, 3000)); //demora de 3 segundos para probar el icono de carga del front
         return userSystemsData;
     } catch (error) {
         throw error;
@@ -27,12 +28,14 @@ const getSistema = async (email = null) => {
 
 const getData = async (email, resultCount) => {
     try {
-        const userSystemsData = await Sistema.findOne({ email });
+        const filter = { email };
+        const proyection = { _id: 0 };
+        const userSystemsData = await Sistema.findOne(filter, proyection);
         if (!userSystemsData) {
             throw new Error('No existe un sistema para ese email');
         }
 
-        //devuelve un array con cada una de las url para pedir los datos a thingspeak
+        //devuelve una lista con cada una de las url para pedir los datos a thingspeak, cada componentede la lsita, es decir cada url solicita los datos de un canal a thingspeak, es decir hay 1 url por canal utilizado para cada cliente.
         const urlQueryList = getUrlQueries(userSystemsData, resultCount);
         console.log(urlQueryList);
 
@@ -49,7 +52,10 @@ const getData = async (email, resultCount) => {
         //   data_6: [ '0', '0', '4' ] }
         const allFieldsSortedValues = getDataSortedFromThingspeakData(valuesListFromThingspeak);
         console.log(allFieldsSortedValues);
+
         const userSystemDataWithValues = getUserSystemsWithValues(userSystemsData, allFieldsSortedValues);
+        console.log(userSystemDataWithValues);
+
         return userSystemDataWithValues;
     } catch (error) {
         console.log('Error');
@@ -146,7 +152,7 @@ const getDataSortedFromThingspeakData = (valuesListFromThingspeak) => {
             const fieldHistoricalValues = getFieldHistoricalValues(channelHistoricalValuesList, fieldIndex);
             //console.log(fieldHistoricalValues);
             gralIndex += 1;
-            allFieldsSortedValues[`data_${gralIndex}`] = fieldHistoricalValues;
+            allFieldsSortedValues[`dato_${gralIndex}`] = fieldHistoricalValues;
         }
     });
     return allFieldsSortedValues;
@@ -154,15 +160,24 @@ const getDataSortedFromThingspeakData = (valuesListFromThingspeak) => {
 
 const getUserSystemsWithValues = (userSystemsData, allFieldsSortedValues) => {
     var systemsFiledsValues = {};
-    userSystemsData.forEach((system) => {
-        //todo
-        system.cant_datos;
-        for (let dataInSystemIndex = 1; dataInSystemIndex <= system.cant_datos; dataInSystemIndex++) {
+    var gralDataIndex = 0;
+    try {
+        for (let systemIndex = 1; systemIndex <= userSystemsData.cant_sistemas; systemIndex++) {
             //todo
+            systemKey = `sistema_${systemIndex}`;
+            systemsFiledsValues[systemKey] = {};
+            for (let dataIndex = 1; dataIndex <= userSystemsData[systemKey].cant_datos; dataIndex++) {
+                //todo
+                dataKey = `dato_${dataIndex}`;
+                gralDataIndex += 1;
+                gralDataKey = `dato_${gralDataIndex}`;
+                systemsFiledsValues[systemKey][dataKey] = allFieldsSortedValues[gralDataKey];
+            }
         }
-    });
-
-    return true;
+        return systemsFiledsValues;
+    } catch (error) {
+        throw new Error('Error al mapear los valores de los datos.');
+    }
 };
 
 module.exports = {
