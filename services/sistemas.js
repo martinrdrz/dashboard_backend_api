@@ -42,8 +42,8 @@ const getData = async (email, resultCount) => {
         // Realiza una llamada en paralelo a todas las url para traer los datos de todos los canales desde thingspeak.
         // Devuelve una lista, donde cada componente es una lista que tiene cada uno de los datos del canal en cuestion, es decir, cada componente de esta ultima lista es un objeto con todos los campos y valores para el canal en cuestion. y la ultima es una lista porque tiene todos los valores historicos almacenados para ese canal, el ultimo valor de la lista es el valor mas reciente.
         const valuesListFromThingspeak = await getDataFromThingspeak(urlQueryList);
-
-        //Devuelve un objeto con propiedades del tipo mencionado abajo que copntiene los valores para todos los datos almacenados para el usuario en particular. Los datos son nombrados de manera creciente del 1 hasta terminar con todos los datos de todos los canales de todos los sistemas que hayan sido asignados a ese usuario enparticular.
+        console.log(valuesListFromThingspeak);
+        //Devuelve un objeto con propiedades del tipo mencionado abajo que contiene los valores para todos los datos almacenados para el usuario en particular. Los datos son nombrados de manera creciente del 1 hasta terminar con todos los datos de todos los canales de todos los sistemas que hayan sido asignados a ese usuario en particular.
         //  { data_1: [ '21', '26', '50' ],
         //   data_2: [ '-16', '-15', '60' ],
         //   data_3: [ '-30', '-56', '70' ],
@@ -53,6 +53,16 @@ const getData = async (email, resultCount) => {
         const allFieldsSortedValues = getDataSortedFromThingspeakData(valuesListFromThingspeak);
         console.log(allFieldsSortedValues);
 
+        //Devuelve un objeto estructurado como se ve mas abajo con sistema_x y dentro con dato_x, de acuerdo a cuantos datos tenga cada sistema.
+        //{
+        //   sistema_1: {
+        //     dato_1: [ '90', '30' ],
+        //     dato_2: [ '90', '30' ],
+        //     dato_3: [ '90', '30' ],
+        //     dato_4: [ '90', '30' ]
+        //   },
+        //   sistema_2: { dato_1: [ '-11', '-22' ], dato_2: [ '0', '4' ] }
+        //}
         const userSystemDataWithValues = getUserSystemsWithValues(userSystemsData, allFieldsSortedValues);
         console.log(userSystemDataWithValues);
 
@@ -127,18 +137,33 @@ const getFieldsCount = (channelData) => {
 };
 
 const getFieldHistoricalValues = (channelHistoricalValuesList, fieldIndex) => {
-    //todo
     if (!channelHistoricalValuesList) {
         throw new Error('No existe lista de valores de Thingspeak ');
     }
     const fieldValuesList = channelHistoricalValuesList.map((element) => {
         return element[`field${fieldIndex}`];
     });
-    return fieldValuesList;
+    const fieldValuesDatesList = channelHistoricalValuesList.map((element) => {
+        return element[`created_at`];
+    });
+
+    return {
+        valores: fieldValuesList,
+        fechas: fieldValuesDatesList,
+    };
 };
 
+// const getFieldHistoricalValues = (channelHistoricalValuesList, fieldIndex) => {
+//     if (!channelHistoricalValuesList) {
+//         throw new Error('No existe lista de valores de Thingspeak ');
+//     }
+//     const fieldValuesList = channelHistoricalValuesList.map((element) => {
+//         return element[`field${fieldIndex}`];
+//     });
+//     return fieldValuesList;
+// };
+
 const getDataSortedFromThingspeakData = (valuesListFromThingspeak) => {
-    //todo
     const allFieldsSortedValues = {};
     var gralIndex = 0;
     valuesListFromThingspeak.forEach((channelHistoricalValuesList) => {
