@@ -37,12 +37,12 @@ const getData = async (email, resultCount) => {
 
         //devuelve una lista con cada una de las url para pedir los datos a thingspeak, cada componentede la lsita, es decir cada url solicita los datos de un canal a thingspeak, es decir hay 1 url por canal utilizado para cada cliente.
         const urlQueryList = getUrlQueries(userSystemsData, resultCount);
-        console.log(urlQueryList);
+        //console.log(urlQueryList);
 
         // Realiza una llamada en paralelo a todas las url para traer los datos de todos los canales desde thingspeak.
         // Devuelve una lista, donde cada componente es una lista que tiene cada uno de los datos del canal en cuestion, es decir, cada componente de esta ultima lista es un objeto con todos los campos y valores para el canal en cuestion. y la ultima es una lista porque tiene todos los valores historicos almacenados para ese canal, el ultimo valor de la lista es el valor mas reciente.
         const valuesListFromThingspeak = await getDataFromThingspeak(urlQueryList);
-        console.log(valuesListFromThingspeak);
+        //console.log(valuesListFromThingspeak);
         //Devuelve un objeto con propiedades del tipo mencionado abajo que contiene los valores para todos los datos almacenados para el usuario en particular. Los datos son nombrados de manera creciente del 1 hasta terminar con todos los datos de todos los canales de todos los sistemas que hayan sido asignados a ese usuario en particular.
         //  { data_1: [ '21', '26', '50' ],
         //   data_2: [ '-16', '-15', '60' ],
@@ -51,7 +51,7 @@ const getData = async (email, resultCount) => {
         //   data_5: [ '-11', '-11', '-22' ],
         //   data_6: [ '0', '0', '4' ] }
         const allFieldsSortedValues = getDataSortedFromThingspeakData(valuesListFromThingspeak);
-        console.log(allFieldsSortedValues);
+        //console.log(allFieldsSortedValues);
 
         //Devuelve un objeto estructurado como se ve mas abajo con sistema_x y dentro con dato_x, de acuerdo a cuantos datos tenga cada sistema.
         //{
@@ -64,7 +64,7 @@ const getData = async (email, resultCount) => {
         //   sistema_2: { dato_1: [ '-11', '-22' ], dato_2: [ '0', '4' ] }
         //}
         const userSystemDataWithValues = getUserSystemsWithValues(userSystemsData, allFieldsSortedValues);
-        console.log(userSystemDataWithValues);
+        //console.log(userSystemDataWithValues);
 
         return userSystemDataWithValues;
     } catch (error) {
